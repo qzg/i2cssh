@@ -111,12 +111,24 @@ optparse = OptionParser.new do |opts|
     # Hosts
     opts.on '-f', '--file FILE',
         'Cluster file (one hostname per line)' do |f|
-        @servers << File.read(f).split("\n")
-        @i2_options << @i2_options.first.clone
-        if @ssh_environment.empty?
-            @ssh_environment << {}
+        if opts_from_cmdline[:tabs_nogroup] # for this to work, -T must be specified on the command line before -f
+          File.read(f).split("\n").each do |serv|
+            @servers << [serv]
+            @i2_options << @i2_options.first.clone
+            if @ssh_environment.empty?
+                @ssh_environment << {}
+            else
+                @ssh_environment << @ssh_environment.first.clone
+            end
+          end
         else
+          @servers << File.read(f).split("\n")
+          @i2_options << @i2_options.first.clone
+          if @ssh_environment.empty?
+            @ssh_environment << {}
+          else
             @ssh_environment << @ssh_environment.first.clone
+          end
         end
     end
 
@@ -243,12 +255,12 @@ elsif ARGV.length > 1
     if opts_from_cmdline[:tabs_nogroup]
         ARGV.each do |serv|
             @servers << [serv]
-                @i2_options << @i2_options.first.clone
-                if @ssh_environment.empty?
-                    @ssh_environment << {}
-                else
-                    @ssh_environment << @ssh_environment.first.clone
-                end
+            @i2_options << @i2_options.first.clone
+            if @ssh_environment.empty?
+                @ssh_environment << {}
+            else
+                @ssh_environment << @ssh_environment.first.clone
+            end
         end
     else
         @servers << ARGV
